@@ -1,0 +1,6 @@
+../Src/delay.c:7:6:systick_init_ms	16	static,ignoring_inline_asm
+../Src/delay.c:23:6:setSysTickTimerFrequencyToOneSecond	24	static
+../Src/delay.c:29:6:resetSysTickCounter	4	static
+../Src/delay.c:33:6:enableSysTickInterrupt	16	static
+../Src/delay.c:38:6:setSysTickClockSourceToInternal	16	static
+../Src/delay.c:43:6:beginSysTickTimerCountDown	16	static
