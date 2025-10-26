@@ -1,8 +1,9 @@
 #include "i2c.h"
 #include "stm32f4xx.h"
 #include <stdint.h>
+#include <stdbool.h>
 
-void i2c_init(){
+void i2cInit(){
     enableI2CClock();
 
     setPB9andPB9ToAltFunctionI2C();
@@ -14,13 +15,13 @@ void i2c_init(){
     const uint32_t i2cClockFrequencyMHz = 50;
     setI2CClockFrequency(i2cClockFrequencyMHz);
 
-    const uint32_t fastMode = 1U<<15;
+    const uint32_t fastMode = 1U << 15;
     setI2CMode(fastMode);
 
-    const uint32_t dutyCycle16Low9High = 1U<<14;
+    const uint32_t dutyCycle16Low9High = 1U << 14;
     setI2CModeDutyCycle(dutyCycle16Low9High);
 
-    const uint32_t clockSpeed = 1U<<1;
+    const uint32_t clockSpeed = 1U << 1;
     setI2CClockSpeed(clockSpeed);
 
     const uint32_t maximumRiseTime = 20;
@@ -70,4 +71,107 @@ void setI2CSignalMaximumRiseTime(const uint32_t maximumRiseTime){
 
 void enableI2C(){
     I2C1->CR1 |= I2C_CR1_PE;
+}
+
+//TODO: account for return type / abstract functions
+void i2cReadByte(char controllerAddress, char targetAddress, char *receivedData){
+    volatile int statusRegisterValue;
+
+    while(i2cBusIsBusy()){
+    }
+    
+    startI2CBus();   
+
+    while(!(startCommandAcknowledged())){
+    }
+
+    setTargetAddressAndWritebit();
+
+    while(!(targetAddressAcknowledged())){
+    }
+
+    clearAddressFlag();
+
+    while(!(dataRegisterIsEmpty())){
+    }
+
+    setControllerAddress();
+
+    while(!(dataRegisterIsEmpty())){
+    }
+
+    startI2CBus();
+
+    while(!(startCommandAcknowledged())){
+    }
+
+    setTargetAddressAndReadBit();
+    
+    while(!(targetAddressAcknowledged())){
+    }
+
+    disableAcknowledgeBit();
+
+    clearAddressFlag();
+
+    stopI2CBus();
+
+    while(!(receiveBufferIsEmpty())){
+    }
+
+    readI2CData(receivedData);
+}
+
+bool i2cBusIsBusy(){
+    return I2C1->SR2 & I2C_SR2_BUSY;
+}
+
+void startI2CBus(){
+    I2C1->CR1 |= I2C_CR1_START;
+}
+
+//ToDo: Consider combining with setTargetAddressAndReadBit
+void setTargetAddressAndWritebit(){
+    I2C1->DR = targetAddress << 1;
+}
+
+bool startCommandAcknowledged(){
+    return I2C1->SR1 & I2C_SR1_SB;
+} 
+
+bool targetAddressAcknowledged(){
+    return I2C1->SR1 & I2C_SR1_ADDR;
+}
+
+void clearAddressFlag(){
+    statusRegisterValue = I2C1 -> SR2;
+}
+
+bool dataRegisterIsEmpty(){
+    return I2C1->SR1 & I2C_SR1_TXE;
+}
+
+void setControllerAddress(){
+    I2C1->DR = controllerAddress;
+}
+
+void setTargetAddressAndReadBit(){
+    I2C1->DR = targetAddress << 1 | 1;
+}
+
+void disableAcknowledgeBit(){
+    I2C1->CR1 &= (~I2C_CR1_ACK);
+}
+
+void stopI2CBus(){
+    I2C1->CR1 |= I2C_CR1_STOP;
+}
+
+bool receiveBufferIsEmpty(){
+    I2C1->SR1 & I2C_SR1_RXNE;
+}
+
+void readI2CData(char *receivedData){
+    *receivedData = I2C1->DR;
+    ++receivedData;
 }
