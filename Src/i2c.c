@@ -75,8 +75,6 @@ void enableI2C(){
 
 //TODO: account for return type / abstract functions
 void i2cReadByte(char controllerAddress, char targetAddress, char *receivedData){
-    volatile int statusRegisterValue;
-
     while(i2cBusIsBusy()){
     }
     
@@ -85,7 +83,7 @@ void i2cReadByte(char controllerAddress, char targetAddress, char *receivedData)
     while(!(startCommandAcknowledged())){
     }
 
-    setTargetAddressAndWritebit();
+    setI2CTargetAddressAndWritebit(targetAddress);
 
     while(!(targetAddressAcknowledged())){
     }
@@ -95,7 +93,7 @@ void i2cReadByte(char controllerAddress, char targetAddress, char *receivedData)
     while(!(dataRegisterIsEmpty())){
     }
 
-    setControllerAddress();
+    setI2CControllerAddress(controllerAddress);
 
     while(!(dataRegisterIsEmpty())){
     }
@@ -105,7 +103,7 @@ void i2cReadByte(char controllerAddress, char targetAddress, char *receivedData)
     while(!(startCommandAcknowledged())){
     }
 
-    setTargetAddressAndReadBit();
+    setI2CTargetAddressAndReadBit(targetAddress);
     
     while(!(targetAddressAcknowledged())){
     }
@@ -131,7 +129,7 @@ void startI2CBus(){
 }
 
 //ToDo: Consider combining with setTargetAddressAndReadBit
-void setTargetAddressAndWritebit(){
+void setI2CTargetAddressAndWritebit(char targetAddress){
     I2C1->DR = targetAddress << 1;
 }
 
@@ -144,6 +142,7 @@ bool targetAddressAcknowledged(){
 }
 
 void clearAddressFlag(){
+    const volatile int statusRegisterValue;
     statusRegisterValue = I2C1->SR2;
 }
 
@@ -151,11 +150,11 @@ bool dataRegisterIsEmpty(){
     return I2C1->SR1 & I2C_SR1_TXE;
 }
 
-void setControllerAddress(){
+void setI2CControllerAddress(const char controllerAddress){
     I2C1->DR = controllerAddress;
 }
 
-void setTargetAddressAndReadBit(){
+void setI2CTargetAddressAndReadBit(char targetAddress){
     I2C1->DR = targetAddress << 1 | 1;
 }
 
@@ -174,4 +173,43 @@ bool receiveBufferIsEmpty(){
 void readDataFromDataRegister(char *receivedData){
     *receivedData = I2C1->DR;
     ++receivedData;
+}
+
+void i2cWriteByte(char controllerAddress, char targetAddress, char data){
+    while(i2cBusIsBusy()){
+    }
+
+    startI2CBus();
+    
+    while(!(startCommandAcknowledged())){
+    }
+    
+    setI2CTargetAddressAndWritebit(targetAddress);
+    
+    while(!(targetAddressAcknowledged())){
+    }
+
+    clearAddressFlag();
+    
+    while(!(dataRegisterIsEmpty())){
+    }
+
+    setI2CControllerAddress(controllerAddress);
+    
+    while(!(dataRegisterIsEmpty())){
+    }
+    
+    insertDataIntoDataRegister(char data);
+
+    while (!(dataTransferCompleted()));
+    
+    stopI2CBus();
+}
+
+void insertDataIntoDataRegister(const char data){
+    I2C1->DR = data;
+}
+
+bool dataTransferCompleted(){
+    return I2C1->SR1 & I2C_SR1_BTF;
 }

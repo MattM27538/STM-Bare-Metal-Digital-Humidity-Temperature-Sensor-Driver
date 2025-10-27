@@ -1,6 +1,9 @@
+#include <stdint.h>
+#include <stdbool.h>
+
 #ifndef I2C_H
 #define I2C_H
-    void i2c_init();
+    void i2cInit();
     void enableI2CClock();
     void setPB9andPB9ToAltFunctionI2C();
     void setPB8AndPB9AsOpenDrain();
@@ -11,4 +14,23 @@
     void setI2CClockSpeed(const uint32_t clockSpeed);
     void setI2CSignalMaximumRiseTime(const uint32_t maximumRiseTime);
     void enableI2C();
+
+    void i2cReadByte(char controllerAddress, char targetAddress, char *i2cData);
+    bool i2cBusIsBusy();
+    void startI2CBus();
+    bool startCommandAcknowledged();
+    void setI2CTargetAddressAndWritebit(char targetAddress);
+    bool targetAddressAcknowledged();
+    void clearAddressFlag();
+    bool dataRegisterIsEmpty();
+    void setI2CControllerAddress(const char controllerAddress);
+    void setI2CTargetAddressAndReadBit(char targetAddress);
+    void disableAcknowledgeBit();
+    void stopI2CBus();
+    bool receiveBufferIsEmpty();
+    void readDataFromDataRegister(char *receivedData);
+
+    void i2cWriteByte(char controllerAddress, char targetAddress, char data);
+    void insertDataIntoDataRegister(const char data);
+    bool dataTransferCompleted();
 #endif
