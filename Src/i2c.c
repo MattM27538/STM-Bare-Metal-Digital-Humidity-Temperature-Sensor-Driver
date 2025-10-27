@@ -119,7 +119,7 @@ void i2cReadByte(char controllerAddress, char targetAddress, char *receivedData)
     while(!(receiveBufferIsEmpty())){
     }
 
-    readI2CData(receivedData);
+    readDataFromDataRegister(receivedData);
 }
 
 bool i2cBusIsBusy(){
@@ -144,7 +144,7 @@ bool targetAddressAcknowledged(){
 }
 
 void clearAddressFlag(){
-    statusRegisterValue = I2C1 -> SR2;
+    statusRegisterValue = I2C1->SR2;
 }
 
 bool dataRegisterIsEmpty(){
@@ -171,7 +171,7 @@ bool receiveBufferIsEmpty(){
     I2C1->SR1 & I2C_SR1_RXNE;
 }
 
-void readI2CData(char *receivedData){
+void readDataFromDataRegister(char *receivedData){
     *receivedData = I2C1->DR;
     ++receivedData;
 }
