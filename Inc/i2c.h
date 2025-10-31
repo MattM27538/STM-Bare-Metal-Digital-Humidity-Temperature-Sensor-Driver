@@ -33,4 +33,7 @@
     void i2cWriteByte(char controllerAddress, char targetAddress, char data);
     void insertDataIntoDataRegister(const char data);
     bool dataTransferCompleted();
+
+    void i2cWriteMultiBytes(char controllerAddress, char targetAddress, const char *buffer, const uint8_t bufferLength);
+    void writeBytes(const char *buffer, const uint8_t bufferLength);
 #endif

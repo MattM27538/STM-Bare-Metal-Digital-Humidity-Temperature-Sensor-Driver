@@ -201,8 +201,9 @@ void i2cWriteByte(char controllerAddress, char targetAddress, char data){
     
     insertDataIntoDataRegister(char data);
 
-    while (!(dataTransferCompleted()));
-    
+    while (!(dataTransferCompleted())){
+        
+    }
     stopI2CBus();
 }
 
@@ -212,4 +213,40 @@ void insertDataIntoDataRegister(const char data){
 
 bool dataTransferCompleted(){
     return I2C1->SR1 & I2C_SR1_BTF;
+}
+
+void i2cWriteMultiBytes(char controllerAddress, char targetAddress, const char *buffer, const uint8_t bufferLength){
+    while (i2cBusIsBusy()){
+    }
+
+    startI2CBus();
+
+    while (!(startCommandAcknowledged())){
+    }
+
+    setI2CTargetAddressAndWritebit(targetAddress);
+
+    while (!(targetAddressAcknowledged())){
+    }
+
+    clearAddressFlag();
+
+    while (!(dataRegisterIsEmpty())){
+    }
+
+    setI2CControllerAddress(controllerAddress);
+
+    while (!(dataRegisterIsEmpty()));
+
+    writeBytes(buffer, bufferLength);
+                                
+    stopI2CBus();
+}
+
+void writeBytes(const char *buffer, const uint8_t bufferLength){
+    for (uint8_t i = 0; i < bufferLength; ++i){ 
+        I2C1->DR = buffer[i];
+        while (!(dataTransferCompleted())){
+        }
+    }	
 }
